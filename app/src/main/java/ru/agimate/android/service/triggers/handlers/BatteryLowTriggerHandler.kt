@@ -38,7 +38,7 @@ class BatteryLowTriggerHandler(
                     }
 
                     sendEvent(
-                        name = "device.battery.low",
+                        name = "android.trigger.battery.low",
                         data = data
                     )
                 }

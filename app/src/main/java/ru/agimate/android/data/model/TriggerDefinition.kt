@@ -2,11 +2,13 @@ package ru.agimate.android.data.model
 
 import android.Manifest
 import android.os.Build
+import androidx.annotation.StringRes
+import ru.agimate.android.R
 
 data class TriggerDefinition(
     val type: TriggerType,
-    val displayName: String,
-    val description: String,
+    @StringRes val displayNameResId: Int,
+    @StringRes val descriptionResId: Int,
     val eventNamePrefix: String,
     val requiredPermissions: List<String> = emptyList()
 ) {
@@ -14,22 +16,22 @@ data class TriggerDefinition(
         val ALL_TRIGGERS = listOf(
             TriggerDefinition(
                 type = TriggerType.INCOMING_CALL,
-                displayName = "Incoming Call",
-                description = "Trigger when receiving a phone call",
-                eventNamePrefix = "device.call.incoming",
+                displayNameResId = R.string.trigger_incoming_call,
+                descriptionResId = R.string.trigger_desc_incoming_call,
+                eventNamePrefix = "android.trigger.call.incoming",
                 requiredPermissions = listOf(Manifest.permission.READ_PHONE_STATE)
             ),
             TriggerDefinition(
                 type = TriggerType.BATTERY_LOW,
-                displayName = "Battery Low",
-                description = "Trigger when battery level is low",
-                eventNamePrefix = "device.battery.low"
+                displayNameResId = R.string.trigger_battery_low,
+                descriptionResId = R.string.trigger_desc_battery_low,
+                eventNamePrefix = "android.trigger.battery.low"
             ),
             TriggerDefinition(
                 type = TriggerType.WIFI,
-                displayName = "Wi-Fi Connection",
-                description = "Trigger when Wi-Fi connects or disconnects",
-                eventNamePrefix = "device.network.wifi",
+                displayNameResId = R.string.trigger_wifi,
+                descriptionResId = R.string.trigger_desc_wifi,
+                eventNamePrefix = "android.trigger.wifi",
                 requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     listOf(Manifest.permission.ACCESS_FINE_LOCATION)
                 } else {
@@ -38,9 +40,9 @@ data class TriggerDefinition(
             ),
             TriggerDefinition(
                 type = TriggerType.SHAKE,
-                displayName = "Shake Device",
-                description = "Trigger when device is shaken",
-                eventNamePrefix = "device.shake"
+                displayNameResId = R.string.trigger_shake,
+                descriptionResId = R.string.trigger_desc_shake,
+                eventNamePrefix = "android.trigger.shake"
             )
         )
     }

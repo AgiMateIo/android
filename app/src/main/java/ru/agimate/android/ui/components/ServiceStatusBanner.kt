@@ -19,7 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ru.agimate.android.R
 
 @Composable
 fun ServiceStatusBanner(
@@ -49,7 +51,7 @@ fun ServiceStatusBanner(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Trigger monitoring active",
+                    text = stringResource(R.string.service_status_monitoring_active),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )

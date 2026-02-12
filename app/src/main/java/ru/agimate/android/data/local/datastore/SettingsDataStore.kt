@@ -16,7 +16,7 @@ class SettingsDataStore(private val context: Context) {
     val settingsFlow: Flow<Settings> = context.dataStore.data.map { preferences ->
         Settings(
             apiKey = preferences[PreferencesKeys.API_KEY] ?: "",
-            serverUrl = preferences[PreferencesKeys.SERVER_URL] ?: "http://api.agimate.lc/",
+            serverUrl = preferences[PreferencesKeys.SERVER_URL] ?: "https://api.agimate.io",
             deviceId = preferences[PreferencesKeys.DEVICE_ID] ?: "",
             debugLogging = preferences[PreferencesKeys.DEBUG_LOGGING] ?: false
         )

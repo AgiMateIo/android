@@ -28,9 +28,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
+import ru.agimate.android.R
 import ru.agimate.android.data.model.ActionDefinition
 import ru.agimate.android.data.model.ActionType
 import ru.agimate.android.util.PermissionHelper
@@ -74,7 +76,7 @@ fun ActionsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Actions") }
+                title = { Text(stringResource(R.string.actions_title)) }
             )
         }
     ) { paddingValues ->
@@ -91,7 +93,7 @@ fun ActionsScreen(
 
             item {
                 Text(
-                    text = "Available Actions",
+                    text = stringResource(R.string.actions_available),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -153,17 +155,17 @@ private fun ActionCard(
 
                 Column {
                     Text(
-                        text = item.definition.displayName,
+                        text = stringResource(item.definition.displayNameResId),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = item.definition.description,
+                        text = stringResource(item.definition.descriptionResId),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (!item.hasPermissions && item.definition.requiredPermissions.isNotEmpty()) {
                         Text(
-                            text = "Requires permissions",
+                            text = stringResource(R.string.actions_requires_permissions),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.error
                         )

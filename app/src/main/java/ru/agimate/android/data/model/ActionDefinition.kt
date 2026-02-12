@@ -2,15 +2,17 @@ package ru.agimate.android.data.model
 
 import android.Manifest
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.ui.graphics.vector.ImageVector
+import ru.agimate.android.R
 
 data class ActionDefinition(
     val type: ActionType,
-    val displayName: String,
-    val description: String,
+    @StringRes val displayNameResId: Int,
+    @StringRes val descriptionResId: Int,
     val icon: ImageVector,
     val requiredPermissions: List<String> = emptyList()
 ) {
@@ -18,15 +20,15 @@ data class ActionDefinition(
         val ALL_ACTIONS = listOf(
             ActionDefinition(
                 type = ActionType.TTS,
-                displayName = "Text-to-Speech",
-                description = "Произнести текст с помощью TTS",
+                displayNameResId = R.string.action_tts,
+                descriptionResId = R.string.action_desc_tts,
                 icon = Icons.AutoMirrored.Filled.VolumeUp,
                 requiredPermissions = emptyList()
             ),
             ActionDefinition(
                 type = ActionType.NOTIFICATION,
-                displayName = "Notification",
-                description = "Показать системное уведомление",
+                displayNameResId = R.string.action_notification,
+                descriptionResId = R.string.action_desc_notification,
                 icon = Icons.Default.Notifications,
                 requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     listOf(Manifest.permission.POST_NOTIFICATIONS)

@@ -37,9 +37,9 @@ class WiFiTriggerHandler(
                 val wifiInfo = wifiManager.connectionInfo
 
                 val eventName = if (isConnected) {
-                    "device.network.wifi.connected"
+                    "android.trigger.wifi.connected"
                 } else {
-                    "device.network.wifi.disconnected"
+                    "android.trigger.wifi.disconnected"
                 }
 
                 Logger.i("WiFi state changed: $eventName")

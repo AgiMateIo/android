@@ -52,10 +52,11 @@ class SettingsViewModel(
     }
 
     fun updateApiKey(apiKey: String) {
-        _uiState.value = _uiState.value.copy(apiKey = apiKey)
+        val trimmed = apiKey.trim()
+        _uiState.value = _uiState.value.copy(apiKey = trimmed)
         viewModelScope.launch {
-            settingsRepository.saveApiKey(apiKey)
-            Logger.d("API Key updated")
+            settingsRepository.saveApiKey(trimmed)
+            Logger.d("Device Key updated")
         }
     }
 

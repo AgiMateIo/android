@@ -84,8 +84,8 @@ class TriggerMonitorService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Agimate Triggers")
-            .setContentText("Monitoring active triggers")
+            .setContentTitle(getString(R.string.notification_triggers_title))
+            .setContentText(getString(R.string.notification_triggers_text))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
@@ -96,10 +96,10 @@ class TriggerMonitorService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Trigger Monitor Service",
+                getString(R.string.notification_triggers_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notification for trigger monitoring service"
+                description = getString(R.string.notification_triggers_channel_desc)
             }
 
             val manager = getSystemService(NotificationManager::class.java)

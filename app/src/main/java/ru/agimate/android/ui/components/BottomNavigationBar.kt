@@ -6,6 +6,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import ru.agimate.android.ui.navigation.Screen
@@ -23,10 +24,10 @@ fun BottomNavigationBar(
                 icon = {
                     Icon(
                         imageVector = screen.icon,
-                        contentDescription = screen.title
+                        contentDescription = stringResource(screen.titleResId)
                     )
                 },
-                label = { Text(screen.title) },
+                label = { Text(stringResource(screen.titleResId)) },
                 selected = currentRoute == screen.route,
                 onClick = {
                     if (currentRoute != screen.route) {

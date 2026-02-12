@@ -10,11 +10,10 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import ru.agimate.android.data.remote.dto.ActionCapability
 import ru.agimate.android.data.remote.dto.LinkDeviceRequest
-import ru.agimate.android.data.remote.dto.TriggerRequest
+import ru.agimate.android.data.remote.dto.TriggerCapability
 import ru.agimate.android.util.Logger
-import java.time.Instant
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class TestConnectionUseCase(
@@ -30,8 +29,19 @@ class TestConnectionUseCase(
             val triggerRequest = LinkDeviceRequest(
                 deviceId = deviceId,
                 deviceName = android.os.Build.MODEL,
-                deviceOs = "android"
-            );
+                deviceOs = "android",
+                triggers = mapOf(
+                    "android.trigger.call.incoming" to TriggerCapability(params = listOf("phoneNumber", "timestamp")),
+                    "android.trigger.battery.low" to TriggerCapability(params = listOf("batteryLevel", "threshold", "timestamp")),
+                    "android.trigger.wifi.connected" to TriggerCapability(params = listOf("ssid", "bssid", "connected", "signalStrength", "timestamp")),
+                    "android.trigger.wifi.disconnected" to TriggerCapability(params = listOf("ssid", "bssid", "connected", "signalStrength", "timestamp")),
+                    "android.trigger.shake.detected" to TriggerCapability(params = listOf("acceleration", "x", "y", "z", "timestamp"))
+                ),
+                actions = mapOf(
+                    "android.action.notification.show" to ActionCapability(params = listOf("title", "message")),
+                    "android.action.tts.speak" to ActionCapability(params = listOf("text"))
+                )
+            )
 
             val client = OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
@@ -42,7 +52,7 @@ class TestConnectionUseCase(
             val requestBody = json.encodeToString(triggerRequest)
                 .toRequestBody("application/json".toMediaType())
 
-            val url = "$baseUrl/mobile-api/device/registration/link"
+            val url = "$baseUrl/device/registration/link"
             val httpRequest = Request.Builder()
                 .url(url)
                 .addHeader("X-Device-Auth-Key", apiKey)

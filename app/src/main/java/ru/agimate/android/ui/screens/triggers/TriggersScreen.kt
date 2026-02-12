@@ -40,8 +40,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
+import ru.agimate.android.R
 import ru.agimate.android.data.model.EventStatus
 import ru.agimate.android.data.model.TriggerDefinition
 import ru.agimate.android.data.model.TriggerEvent
@@ -93,13 +95,13 @@ fun TriggersScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Triggers") },
+                title = { Text(stringResource(R.string.triggers_title)) },
                 actions = {
                     if (uiState.recentEvents.isNotEmpty()) {
                         IconButton(onClick = { viewModel.clearEventHistory() }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Clear history"
+                                contentDescription = stringResource(R.string.triggers_clear_history)
                             )
                         }
                     }
@@ -121,7 +123,7 @@ fun TriggersScreen(
             // Triggers section
             item {
                 Text(
-                    text = "Available Triggers",
+                    text = stringResource(R.string.triggers_available),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -141,7 +143,7 @@ fun TriggersScreen(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Recent Events",
+                        text = stringResource(R.string.triggers_recent_events),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -199,17 +201,17 @@ private fun TriggerCard(
 
                 Column {
                     Text(
-                        text = item.definition.displayName,
+                        text = stringResource(item.definition.displayNameResId),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = item.definition.description,
+                        text = stringResource(item.definition.descriptionResId),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (!item.hasPermissions && item.definition.requiredPermissions.isNotEmpty()) {
                         Text(
-                            text = "Requires permissions",
+                            text = stringResource(R.string.triggers_requires_permissions),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.error
                         )

@@ -34,11 +34,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
+import ru.agimate.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +59,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") }
+                title = { Text(stringResource(R.string.settings_title)) }
             )
         }
     ) { paddingValues ->
@@ -70,11 +72,11 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Connection Section
-            SectionCard(title = "Connection") {
+            SectionCard(title = stringResource(R.string.settings_section_connection)) {
                 OutlinedTextField(
                     value = uiState.apiKey,
                     onValueChange = { viewModel.updateApiKey(it) },
-                    label = { Text("API Key") },
+                    label = { Text(stringResource(R.string.settings_device_key)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -86,7 +88,7 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = uiState.serverUrl,
                     onValueChange = { viewModel.updateServerUrl(it) },
-                    label = { Text("Server URL") },
+                    label = { Text(stringResource(R.string.settings_server_url)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
@@ -111,7 +113,7 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
-                        Text("Test Connection")
+                        Text(stringResource(R.string.settings_link_device))
                     }
 
                     uiState.connectionTestResult?.let { result ->
@@ -119,19 +121,19 @@ fun SettingsScreen(
                             is ConnectionTestResult.Success -> {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = "Success",
+                                    contentDescription = stringResource(R.string.settings_icon_success),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    "Success",
+                                    stringResource(R.string.settings_link_success),
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
                             is ConnectionTestResult.Error -> {
                                 Icon(
                                     imageVector = Icons.Default.Error,
-                                    contentDescription = "Error",
+                                    contentDescription = stringResource(R.string.settings_icon_error),
                                     tint = MaterialTheme.colorScheme.error
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
@@ -147,14 +149,14 @@ fun SettingsScreen(
             }
 
             // Device Info Section
-            SectionCard(title = "Device Info") {
-                InfoRow(label = "Device ID", value = uiState.deviceId)
+            SectionCard(title = stringResource(R.string.settings_section_device_info)) {
+                InfoRow(label = stringResource(R.string.settings_device_id), value = uiState.deviceId)
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                InfoRow(label = "App Version", value = uiState.appVersion)
+                InfoRow(label = stringResource(R.string.settings_app_version), value = uiState.appVersion)
             }
 
             // Debug Section
-            SectionCard(title = "Debug") {
+            SectionCard(title = stringResource(R.string.settings_section_debug)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -162,11 +164,11 @@ fun SettingsScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Debug Logging",
+                            text = stringResource(R.string.settings_debug_logging),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            text = "Save events locally for debugging",
+                            text = stringResource(R.string.settings_debug_logging_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

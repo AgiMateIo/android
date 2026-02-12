@@ -31,7 +31,7 @@ class ShakeTriggerHandler(
     private var lastShakeTime: Long = 0
 
     companion object {
-        private const val SHAKE_THRESHOLD = 800
+        private const val SHAKE_THRESHOLD = 2500
         private const val UPDATE_INTERVAL_MS = 100
         private const val SHAKE_COOLDOWN_MS = 1000
     }
@@ -68,7 +68,7 @@ class ShakeTriggerHandler(
                 }
 
                 sendEvent(
-                    name = "device.shake",
+                    name = "android.trigger.shake.detected",
                     data = data
                 )
             }

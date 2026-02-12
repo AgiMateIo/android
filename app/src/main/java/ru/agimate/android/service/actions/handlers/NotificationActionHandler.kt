@@ -31,17 +31,18 @@ class NotificationActionHandler(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Action Notifications",
+                context.getString(R.string.notification_action_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Notifications triggered by backend actions"
+                description = context.getString(R.string.notification_action_channel_desc)
             }
             notificationManager?.createNotificationChannel(channel)
         }
     }
 
     override suspend fun execute(task: ActionTask) {
-        val title = task.parameters["title"]?.jsonPrimitive?.content ?: "Agimate"
+        val title = task.parameters["title"]?.jsonPrimitive?.content
+            ?: context.getString(R.string.notification_default_title)
         val message = task.parameters["message"]?.jsonPrimitive?.content
 
         if (message == null) {

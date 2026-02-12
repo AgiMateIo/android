@@ -1,3 +1,76 @@
 <resources>
     <string name="app_name">Agimate</string>
+
+    <!-- Navigation -->
+    <string name="nav_triggers">Triggers</string>
+    <string name="nav_actions">Actions</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Triggers Screen -->
+    <string name="triggers_title">Triggers</string>
+    <string name="triggers_available">Available Triggers</string>
+    <string name="triggers_recent_events">Recent Events</string>
+    <string name="triggers_clear_history">Clear history</string>
+    <string name="triggers_requires_permissions">Requires permissions</string>
+
+    <!-- Actions Screen -->
+    <string name="actions_title">Actions</string>
+    <string name="actions_available">Available Actions</string>
+    <string name="actions_requires_permissions">Requires permissions</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_connection">Connection</string>
+    <string name="settings_device_key">Device Key</string>
+    <string name="settings_server_url">Server URL</string>
+    <string name="settings_link_device">Link this device</string>
+    <string name="settings_link_success">Linked</string>
+    <string name="settings_icon_success">Success</string>
+    <string name="settings_icon_error">Error</string>
+    <string name="settings_section_device_info">Device Info</string>
+    <string name="settings_device_id">Device ID</string>
+    <string name="settings_app_version">App Version</string>
+    <string name="settings_section_debug">Debug</string>
+    <string name="settings_debug_logging">Debug Logging</string>
+    <string name="settings_debug_logging_description">Save events locally for debugging</string>
+
+    <!-- Service Status -->
+    <string name="service_status_monitoring_active">Trigger monitoring active</string>
+
+    <!-- Trigger Types -->
+    <string name="trigger_incoming_call">Incoming Call</string>
+    <string name="trigger_battery_low">Battery Low</string>
+    <string name="trigger_wifi">Wi-Fi Connected/Disconnected</string>
+    <string name="trigger_shake">Shake Device</string>
+
+    <!-- Trigger Descriptions -->
+    <string name="trigger_desc_incoming_call">Trigger when receiving a phone call</string>
+    <string name="trigger_desc_battery_low">Trigger when battery level is low</string>
+    <string name="trigger_desc_wifi">Trigger when Wi-Fi connects or disconnects</string>
+    <string name="trigger_desc_shake">Trigger when device is shaken</string>
+
+    <!-- Action Types -->
+    <string name="action_tts">Text-to-Speech</string>
+    <string name="action_notification">Notification</string>
+
+    <!-- Action Descriptions -->
+    <string name="action_desc_tts">Speak text aloud using TTS</string>
+    <string name="action_desc_notification">Show a system notification</string>
+
+    <!-- Notification: Trigger Service -->
+    <string name="notification_triggers_title">Agimate Triggers</string>
+    <string name="notification_triggers_text">Monitoring active triggers</string>
+    <string name="notification_triggers_channel_name">Trigger Monitor Service</string>
+    <string name="notification_triggers_channel_desc">Notification for trigger monitoring service</string>
+
+    <!-- Notification: Action Service -->
+    <string name="notification_actions_title">Agimate Actions</string>
+    <string name="notification_actions_text">Ready to receive commands</string>
+    <string name="notification_actions_channel_name">Action Executor Service</string>
+    <string name="notification_actions_channel_desc">Notification for action executor service</string>
+
+    <!-- Notification: Action Handler -->
+    <string name="notification_action_channel_name">Action Notifications</string>
+    <string name="notification_action_channel_desc">Notifications triggered by backend actions</string>
+    <string name="notification_default_title">Agimate</string>
 </resources>

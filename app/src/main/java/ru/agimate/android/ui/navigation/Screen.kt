@@ -1,31 +1,33 @@
 package ru.agimate.android.ui.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
+import ru.agimate.android.R
 
 sealed class Screen(
     val route: String,
-    val title: String,
+    @StringRes val titleResId: Int,
     val icon: ImageVector
 ) {
     data object Triggers : Screen(
         route = "triggers",
-        title = "Triggers",
+        titleResId = R.string.nav_triggers,
         icon = Icons.Default.Bolt
     )
 
     data object Actions : Screen(
         route = "actions",
-        title = "Actions",
+        titleResId = R.string.nav_actions,
         icon = Icons.Default.PlayArrow
     )
 
     data object Settings : Screen(
         route = "settings",
-        title = "Settings",
+        titleResId = R.string.nav_settings,
         icon = Icons.Default.Settings
     )
 

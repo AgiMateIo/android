@@ -6,11 +6,14 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import io.github.centrifugal.centrifuge.Client
 import io.github.centrifugal.centrifuge.ConnectedEvent
+import io.github.centrifugal.centrifuge.ConnectionTokenEvent
+import io.github.centrifugal.centrifuge.ConnectionTokenGetter
 import io.github.centrifugal.centrifuge.DisconnectedEvent
 import io.github.centrifugal.centrifuge.DuplicateSubscriptionException
 import io.github.centrifugal.centrifuge.ErrorEvent
@@ -21,6 +24,9 @@ import io.github.centrifugal.centrifuge.SubscribedEvent
 import io.github.centrifugal.centrifuge.Subscription
 import io.github.centrifugal.centrifuge.SubscriptionEventListener
 import io.github.centrifugal.centrifuge.SubscriptionOptions
+import io.github.centrifugal.centrifuge.SubscriptionTokenEvent
+import io.github.centrifugal.centrifuge.SubscriptionTokenGetter
+import io.github.centrifugal.centrifuge.TokenCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,6 +40,11 @@ import ru.agimate.android.MainActivity
 import ru.agimate.android.R
 import ru.agimate.android.data.model.ActionTask
 import ru.agimate.android.data.model.ActionType
+import ru.agimate.android.data.remote.api.TriggerApi
+import ru.agimate.android.data.remote.dto.ActionCapability
+import ru.agimate.android.data.remote.dto.CentrifugoTokenRequest
+import ru.agimate.android.data.remote.dto.LinkDeviceRequest
+import ru.agimate.android.data.remote.dto.TriggerCapability
 import ru.agimate.android.domain.repository.IActionStateRepository
 import ru.agimate.android.domain.repository.ISettingsRepository
 import ru.agimate.android.service.actions.base.IActionHandler
@@ -45,6 +56,7 @@ class ActionExecutorService : Service() {
 
     private val actionStateRepo: IActionStateRepository by inject()
     private val settingsRepo: ISettingsRepository by inject()
+    private val triggerApi: TriggerApi by inject()
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val actionHandlers = mutableMapOf<ActionType, IActionHandler>()
@@ -53,6 +65,11 @@ class ActionExecutorService : Service() {
 
     private var centrifugeClient: Client? = null
     private var centrifugeSubscription: Subscription? = null
+
+    // Centrifugo token state
+    private var connectionToken: String? = null
+    private var subscriptionToken: String? = null
+    private var channel: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -76,19 +93,84 @@ class ActionExecutorService : Service() {
             try {
                 val settings = settingsRepo.settingsFlow.first()
                 val deviceId = settings.deviceId
+                val serverUrl = settings.serverUrl.trimEnd('/')
 
-                // Convert HTTP URL to WebSocket URL
-                val serverUrl = settings.serverUrl
-                val wsUrl = serverUrl
-                    .replace("http://", "ws://")
-                    .replace("https://", "wss://")
-                    .trimEnd('/') + "/connection/websocket"
+                // Step 1: Link device with server (include capabilities)
+                Logger.i("Linking device: deviceId=$deviceId")
+                val triggers = mapOf(
+                    "android.trigger.call.incoming" to TriggerCapability(params = listOf("phoneNumber", "timestamp")),
+                    "android.trigger.battery.low" to TriggerCapability(params = listOf("batteryLevel", "threshold", "timestamp")),
+                    "android.trigger.wifi.connected" to TriggerCapability(params = listOf("ssid", "bssid", "connected", "signalStrength", "timestamp")),
+                    "android.trigger.wifi.disconnected" to TriggerCapability(params = listOf("ssid", "bssid", "connected", "signalStrength", "timestamp")),
+                    "android.trigger.shake.detected" to TriggerCapability(params = listOf("acceleration", "x", "y", "z", "timestamp"))
+                )
+                val actions = mapOf(
+                    "android.action.notification.show" to ActionCapability(params = listOf("title", "message")),
+                    "android.action.tts.speak" to ActionCapability(params = listOf("text"))
+                )
+                val linkResponse = triggerApi.linkDevice(
+                    LinkDeviceRequest(
+                        deviceId = deviceId,
+                        deviceName = Build.MODEL,
+                        deviceOs = "android",
+                        triggers = triggers,
+                        actions = actions
+                    )
+                )
+                if (!linkResponse.isSuccessful) {
+                    Logger.e("Failed to link device: ${linkResponse.code()} ${linkResponse.message()}")
+                    return@launch
+                }
+                Logger.i("Device linked successfully")
 
+                // Step 2: Fetch Centrifugo tokens
+                Logger.i("Fetching Centrifugo tokens...")
+                val tokenResponse = triggerApi.getCentrifugoToken(
+                    CentrifugoTokenRequest(deviceId = deviceId)
+                )
+                if (!tokenResponse.isSuccessful || tokenResponse.body() == null) {
+                    Logger.e("Failed to fetch Centrifugo tokens: ${tokenResponse.code()} ${tokenResponse.message()}")
+                    return@launch
+                }
+                val tokenData = tokenResponse.body()!!.response
+                connectionToken = tokenData.connectionToken
+                subscriptionToken = tokenData.subscriptionToken
+                channel = tokenData.channel
+                Logger.i("Centrifugo tokens received for channel: $channel")
+
+                // Step 3: Derive WebSocket URL
+                val wsUrl = if (tokenData.wsUrl != null) {
+                    tokenData.wsUrl
+                } else {
+                    deriveWsUrl(serverUrl)
+                }
                 Logger.i("Centrifugo WebSocket URL: $wsUrl")
-                Logger.i("Device ID: $deviceId")
 
-                // Create Centrifuge client with options
+                // Step 4: Create client with token auth
                 val options = Options()
+                options.token = connectionToken
+                options.tokenGetter = object : ConnectionTokenGetter() {
+                    override fun getConnectionToken(event: ConnectionTokenEvent, cb: TokenCallback) {
+                        serviceScope.launch {
+                            try {
+                                val refreshResponse = triggerApi.getCentrifugoToken(
+                                    CentrifugoTokenRequest(deviceId = deviceId)
+                                )
+                                if (refreshResponse.isSuccessful && refreshResponse.body() != null) {
+                                    val data = refreshResponse.body()!!.response
+                                    connectionToken = data.connectionToken
+                                    subscriptionToken = data.subscriptionToken
+                                    cb.Done(null, data.connectionToken)
+                                } else {
+                                    cb.Done(Exception("Failed to refresh connection token"), null)
+                                }
+                            } catch (e: Exception) {
+                                Logger.e("Error refreshing connection token: ${e.message}")
+                                cb.Done(e, null)
+                            }
+                        }
+                    }
+                }
 
                 centrifugeClient = Client(
                     wsUrl,
@@ -96,7 +178,7 @@ class ActionExecutorService : Service() {
                     object : EventListener() {
                         override fun onConnected(client: Client, event: ConnectedEvent) {
                             Logger.i("Connected to Centrifugo with client id: ${event.client}")
-                            subscribeToChannel(deviceId)
+                            subscribeToChannel(channel!!, subscriptionToken!!, deviceId)
                         }
 
                         override fun onDisconnected(client: Client, event: DisconnectedEvent) {
@@ -109,7 +191,6 @@ class ActionExecutorService : Service() {
                     }
                 )
 
-                // Connect to Centrifugo
                 centrifugeClient?.connect()
                 Logger.i("Connecting to Centrifugo...")
 
@@ -119,12 +200,50 @@ class ActionExecutorService : Service() {
         }
     }
 
-    private fun subscribeToChannel(deviceId: String) {
+    private fun deriveWsUrl(serverUrl: String): String {
+        val uri = Uri.parse(serverUrl)
+        val host = uri.host ?: ""
+        val port = if (uri.port != -1) ":${uri.port}" else ""
+        val parts = host.split(".", limit = 2)
+
+        return if (parts.size == 2 && parts[1].contains(".")) {
+            // Multi-level domain (e.g. api.agimate.io) -> wss://centrifugo.agimate.io
+            "wss://centrifugo.${parts[1]}/connection/websocket"
+        } else {
+            // Single-level host (e.g. localhost:8080) -> respect original scheme
+            val wsScheme = if (uri.scheme == "https") "wss" else "ws"
+            "$wsScheme://$host$port/connection/websocket"
+        }
+    }
+
+    private fun subscribeToChannel(channel: String, subToken: String, deviceId: String) {
         try {
-            val channel = "device:$deviceId:actions"
             Logger.i("Subscribing to channel: $channel")
 
             val subscriptionOptions = SubscriptionOptions()
+            subscriptionOptions.token = subToken
+            subscriptionOptions.tokenGetter = object : SubscriptionTokenGetter() {
+                override fun getSubscriptionToken(event: SubscriptionTokenEvent, cb: TokenCallback) {
+                    serviceScope.launch {
+                        try {
+                            val refreshResponse = triggerApi.getCentrifugoToken(
+                                CentrifugoTokenRequest(deviceId = deviceId)
+                            )
+                            if (refreshResponse.isSuccessful && refreshResponse.body() != null) {
+                                val data = refreshResponse.body()!!.response
+                                subscriptionToken = data.subscriptionToken
+                                connectionToken = data.connectionToken
+                                cb.Done(null, data.subscriptionToken)
+                            } else {
+                                cb.Done(Exception("Failed to refresh subscription token"), null)
+                            }
+                        } catch (e: Exception) {
+                            Logger.e("Error refreshing subscription token: ${e.message}")
+                            cb.Done(e, null)
+                        }
+                    }
+                }
+            }
 
             centrifugeSubscription = centrifugeClient?.newSubscription(
                 channel,
@@ -161,7 +280,11 @@ class ActionExecutorService : Service() {
                 Logger.i("Received action task: $dataString")
 
                 val task = json.decodeFromString<ActionTask>(dataString)
-                val actionType = ActionType.valueOf(task.type)
+                val actionType = ActionType.fromActionName(task.type)
+                if (actionType == null) {
+                    Logger.e("Unknown action type: ${task.type}")
+                    return@launch
+                }
 
                 // Check if this action type is enabled
                 if (!actionStateRepo.isEnabled(actionType)) {
@@ -203,8 +326,8 @@ class ActionExecutorService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Agimate Actions")
-            .setContentText("Ready to receive commands")
+            .setContentTitle(getString(R.string.notification_actions_title))
+            .setContentText(getString(R.string.notification_actions_text))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
@@ -215,10 +338,10 @@ class ActionExecutorService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Action Executor Service",
+                getString(R.string.notification_actions_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notification for action executor service"
+                description = getString(R.string.notification_actions_channel_desc)
             }
 
             val manager = getSystemService(NotificationManager::class.java)

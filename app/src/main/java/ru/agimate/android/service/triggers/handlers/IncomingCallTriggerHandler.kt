@@ -35,7 +35,7 @@ class IncomingCallTriggerHandler(
                 }
 
                 sendEvent(
-                    name = "device.call.incoming",
+                    name = "android.trigger.call.incoming",
                     data = data
                 )
             }
